@@ -1,0 +1,57 @@
+CREATE DATABASE IF NOT EXISTS niru_game CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE niru_game;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('admin', 'student') NOT NULL DEFAULT 'student',
+  grade_level TINYINT UNSIGNED NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS smtp_settings (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  host VARCHAR(255) NOT NULL,
+  port INT UNSIGNED NOT NULL DEFAULT 587,
+  secure TINYINT(1) NOT NULL DEFAULT 0,
+  username VARCHAR(255) NOT NULL DEFAULT '',
+  password VARCHAR(255) NOT NULL DEFAULT '',
+  from_email VARCHAR(255) NOT NULL,
+  from_name VARCHAR(120) NOT NULL DEFAULT 'Niru Quest Lab',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  updated_by INT UNSIGNED NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_smtp_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS game_sessions (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NULL,
+  guest_name VARCHAR(120) NULL,
+  subject ENUM('math', 'science') NOT NULL,
+  difficulty ENUM('simple', 'medium', 'hard', 'very_hard') NOT NULL,
+  total_questions INT UNSIGNED NOT NULL DEFAULT 10,
+  correct_answers INT UNSIGNED NOT NULL DEFAULT 0,
+  score INT UNSIGNED NOT NULL DEFAULT 0,
+  duration_seconds INT UNSIGNED NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS game_answers (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  session_id INT UNSIGNED NOT NULL,
+  question_text VARCHAR(255) NOT NULL,
+  correct_answer VARCHAR(64) NOT NULL,
+  user_answer VARCHAR(64) NOT NULL,
+  is_correct TINYINT(1) NOT NULL,
+  time_ms INT UNSIGNED NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_answer_session FOREIGN KEY (session_id) REFERENCES game_sessions(id) ON DELETE CASCADE
+);
+
+-- Default admin is seeded by: npm run db:seed
+-- Email: admin@niru.local  Password: Admin@123
