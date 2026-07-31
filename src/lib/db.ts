@@ -12,22 +12,33 @@ declare global {
 
 type QueryParams = Record<string, string | number | boolean | null | Date>;
 
+function resolveHost(raw: string | undefined): string {
+  const host = (raw || "127.0.0.1").trim();
+  // Hostinger MySQL grants are usually for 127.0.0.1 / localhost (IPv4).
+  // "localhost" often resolves to ::1 in Node and causes Access denied.
+  if (host.toLowerCase() === "localhost") {
+    return "127.0.0.1";
+  }
+  return host;
+}
+
 function getConfig(): PoolOptions {
   return {
-    host:
-      process.env.MYSQL_HOST ||
-      process.env.DB_HOST ||
-      "127.0.0.1",
+    host: resolveHost(process.env.MYSQL_HOST || process.env.DB_HOST),
     port: Number(
       process.env.MYSQL_PORT || process.env.DB_PORT || 3306,
     ),
-    user: process.env.MYSQL_USER || process.env.DB_USER || "root",
-    password:
-      process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD || "",
-    database:
+    user: (process.env.MYSQL_USER || process.env.DB_USER || "root").trim(),
+    password: (
+      process.env.MYSQL_PASSWORD ||
+      process.env.DB_PASSWORD ||
+      ""
+    ).trim(),
+    database: (
       process.env.MYSQL_DATABASE ||
       process.env.DB_NAME ||
-      "niru_game",
+      "niru_game"
+    ).trim(),
     waitForConnections: true,
     connectionLimit: 10,
     namedPlaceholders: true,

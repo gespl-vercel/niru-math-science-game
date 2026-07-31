@@ -8,11 +8,12 @@ export async function GET() {
   const hasPassword = Boolean(
     process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD,
   );
+  const rawHost =
+    process.env.MYSQL_HOST || process.env.DB_HOST || "(missing)";
   const config = {
-    host:
-      process.env.MYSQL_HOST ||
-      process.env.DB_HOST ||
-      "(missing)",
+    host: rawHost,
+    resolvedHost:
+      rawHost.toLowerCase() === "localhost" ? "127.0.0.1" : rawHost,
     port: process.env.MYSQL_PORT || process.env.DB_PORT || "3306",
     user: hasUser ? "set" : "(missing)",
     password: hasPassword ? "set" : "(missing/empty)",
